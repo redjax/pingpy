@@ -3,15 +3,37 @@ import logging
 import platform
 import subprocess
 import sys
+import re
 from time import sleep
 
 ## Configure logging
 log = logging.getLogger("pingpy")
 console_handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - [%(levelname)s] - %(message)s")
-console_handler.setFormatter(formatter)
-log.addHandler(console_handler)
-log.setLevel("INFO")
+
+
+def set_logging_format(args):
+    if args.debug:
+        log.setLevel("DEBUG")
+        formatter = logging.Formatter(
+            "%(asctime)s > [%(levelname)s] > %(module)s.%(funcName)s:%(lineno)s > %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+    elif args.verbose:
+        log.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s > [%(levelname)s] > %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+    else:
+        log.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s > %(message)s",
+            datefmt="%H:%M:%S"
+        )
+        
+    console_handler.setFormatter(formatter)
+    log.addHandler(console_handler)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count and verbosity.")
@@ -23,53 +45,95 @@ def parse_args():
     return parser.parse_args()
 
 
-def ping_target(target, repeat, verbose):
-    # Determine the ping command based on the platform
-    param = '-n' if platform.system().lower() == 'windows' else '-c'
-    command_base = ['ping', param, '1', target]
+def parse_ping_output(output, verbose=False):
+    """
+    Parse the ping output to extract IP address, success status, data sent, and round-trip time.
+    """
+    stats = {
+        'ip_address': None,
+        'success': False,
+        'data_sent': None,
+        'rtt': None
+    }
 
-    log.info(f"Starting ping to {target} for {'infinite' if repeat == 0 else repeat} times")
-    count_iter = 0
+    if platform.system().lower() == 'windows':
+        # Update these regex patterns to capture bytes and RTT on Windows
+        ip_match = re.search(r'Reply from ([\d.]+):', output)
+        data_match = re.search(r'bytes=(\d+)', output)
+        rtt_match = re.search(r'time[=<]\s*(\d+)ms', output)
+
+        if ip_match:
+            stats['ip_address'] = ip_match.group(1)
+            stats['success'] = 'Request timed out' not in output
+            if data_match:
+                stats['data_sent'] = int(data_match.group(1))  # Capture data size
+            if rtt_match:
+                stats['rtt'] = int(rtt_match.group(1))  # Capture RTT in ms
+    else:
+        # Unix-based parsing remains the same
+        ip_match = re.search(r'PING\s+.*\s+\(([\d.]+)\)', output)
+        success_match = re.search(r'(\d+) bytes from ([\d.]+)', output)
+        rtt_match = re.search(r'time=(\d+\.\d+) ms', output)
+
+        if ip_match:
+            stats['ip_address'] = ip_match.group(1)
+        if success_match:
+            stats['success'] = True
+            stats['data_sent'] = int(success_match.group(1))
+        if rtt_match:
+            stats['rtt'] = float(rtt_match.group(1))
+
+    if verbose:
+        log.debug(f"Parsed stats: {stats}")
+
+    return stats
+
+def ping_target(target, repeat=3, verbose=False):
+    successes = 0
+    failures = 0
 
     try:
-        while repeat == 0 or count_iter < repeat:
-            try:
+        for i in range(repeat if repeat > 0 else sys.maxsize):
+            if platform.system().lower() == 'windows':
+                # Run the ping command for Windows
                 result = subprocess.run(
-                    command_base,
+                    ["ping", target, "-n", "1"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            else:
+                # Run the ping command for Unix-based systems
+                result = subprocess.run(
+                    ["ping", "-c", "1", target],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True
                 )
 
-                if result.returncode == 0:
-                    log.info(f"Reply from {target}: {result.stdout.splitlines()[1]}")
-                    if verbose:
-                        log.info(f"Ping {count_iter + 1}: Success")
-                else:
-                    log.warning(f"No response from {target}")
-                    if verbose:
-                        log.warning(f"Ping {count_iter + 1}: Failure")
-                        log.debug(result.stderr)
+            if "TTL=" in result.stdout or "time=" in result.stdout:
+                successes += 1
+                log.info(f"Reply from {target} - Success")
+            else:
+                failures += 1
+                log.warning(f"No reply from {target} - Failure")
 
-            except subprocess.SubprocessError as e:
-                log.error(f"Ping failed for {target}: {e}")
-            
-            count_iter += 1
-            if repeat != 0:
-                sleep(1)  # Small delay between pings to avoid spamming
+            sleep(1)  # Optional: Add a delay between pings
 
     except KeyboardInterrupt:
-        log.warning("Ping operation interrupted by user")
+        log.info("Ping interrupted by user (CTRL+C).")
+
+    finally:
+        log.info(f"Ping complete. Successes: {successes}, Failures: {failures}")
+
 
 def main():
     args = parse_args()
+    set_logging_format(args)
 
-    # Set logging level
     if args.debug:
-        log.setLevel(logging.DEBUG)
         log.debug("Debug mode enabled")
     elif args.verbose:
-        log.setLevel(logging.INFO)
         log.info("Verbose mode enabled")
 
     ping_target(args.target, args.repeat, args.verbose)
