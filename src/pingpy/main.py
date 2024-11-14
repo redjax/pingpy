@@ -34,10 +34,13 @@ def set_logging_format(args):
     console_handler.setFormatter(formatter)
     log.addHandler(console_handler)
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count and verbosity.")
-    parser.add_argument('-t', '--target', required=True, help='Target IP address or hostname to ping')
+    
+    # Make the target positional (first argument after the script name)
+    parser.add_argument('target', help='Target IP address or hostname to ping')
+
+    # Optional arguments for repeat count, verbosity, and debug
     parser.add_argument('-r', '--repeat', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
