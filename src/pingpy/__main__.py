@@ -1,4 +1,4 @@
-from .main import main
+from .main import ping
 
 if __name__ == "__main__":
-    main()
+    ping()

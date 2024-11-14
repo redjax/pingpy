@@ -48,7 +48,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_ping_response(output):
+def _parse_ping_response(output):
     """Parses the output of the ping command to extract the IP address, time, TTL, and success status."""
     # Pattern for Windows format (including 'time<1ms' case)
     windows_pattern = r"Reply from ([\d\.]+): bytes=\d+ time=(\d+ms|<1ms) TTL=(\d+)"
@@ -77,7 +77,7 @@ def parse_ping_response(output):
 
     return ip_address, success, time, ttl
 
-def ping_target(target, repeat=3, verbose=False):
+def _ping_target(target, repeat=3, verbose=False):
     successes = 0
     failures = 0
 
@@ -118,7 +118,7 @@ def ping_target(target, repeat=3, verbose=False):
     finally:
         log.info(f"Ping complete. Successes: {successes}, Failures: {failures}")
 
-def main():
+def ping():
     
     args = parse_args()
     set_logging_format(args)
@@ -128,7 +128,7 @@ def main():
     elif args.verbose:
         log.info("Verbose mode enabled")
 
-    ping_target(args.target, args.repeat, args.verbose)
+    _ping_target(args.target, args.repeat, args.verbose)
 
 if __name__ == '__main__':
-    main()
+    ping()

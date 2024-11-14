@@ -158,6 +158,8 @@ def run_tests(session: nox.Session):
 
     print("Running Pytest tests")
     session.run(
+        "uv",
+        "run",
         "pytest",
         "-n",
         "auto",
