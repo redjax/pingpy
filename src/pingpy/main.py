@@ -45,48 +45,34 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_ping_output(output, verbose=False):
-    """
-    Parse the ping output to extract IP address, success status, data sent, and round-trip time.
-    """
-    stats = {
-        'ip_address': None,
-        'success': False,
-        'data_sent': None,
-        'rtt': None
-    }
-
-    if platform.system().lower() == 'windows':
-        # Update these regex patterns to capture bytes and RTT on Windows
-        ip_match = re.search(r'Reply from ([\d.]+):', output)
-        data_match = re.search(r'bytes=(\d+)', output)
-        rtt_match = re.search(r'time[=<]\s*(\d+)ms', output)
-
-        if ip_match:
-            stats['ip_address'] = ip_match.group(1)
-            stats['success'] = 'Request timed out' not in output
-            if data_match:
-                stats['data_sent'] = int(data_match.group(1))  # Capture data size
-            if rtt_match:
-                stats['rtt'] = int(rtt_match.group(1))  # Capture RTT in ms
+def parse_ping_response(output):
+    """Parses the output of the ping command to extract the IP address, time, TTL, and success status."""
+    # Pattern for Windows format (including 'time<1ms' case)
+    windows_pattern = r"Reply from ([\d\.]+): bytes=\d+ time=(\d+ms|<1ms) TTL=(\d+)"
+    # Pattern for Linux/macOS format
+    unix_pattern = r"(\d+) bytes from ([\d\.]+): icmp_seq=\d+ ttl=(\d+) time=(\d+\.\d+) ms"
+    
+    # Try to match the output against the patterns
+    match = re.search(windows_pattern, output)
+    if match:
+        ip_address = match.group(1)
+        time = match.group(2)  # time can be in "ms" or "<1ms"
+        ttl = match.group(3)
+        success = True
     else:
-        # Unix-based parsing remains the same
-        ip_match = re.search(r'PING\s+.*\s+\(([\d.]+)\)', output)
-        success_match = re.search(r'(\d+) bytes from ([\d.]+)', output)
-        rtt_match = re.search(r'time=(\d+\.\d+) ms', output)
+        match = re.search(unix_pattern, output)
+        if match:
+            ip_address = match.group(2)
+            time = match.group(4)
+            ttl = match.group(3)
+            success = True
+        else:
+            ip_address = None
+            time = None
+            ttl = None
+            success = False
 
-        if ip_match:
-            stats['ip_address'] = ip_match.group(1)
-        if success_match:
-            stats['success'] = True
-            stats['data_sent'] = int(success_match.group(1))
-        if rtt_match:
-            stats['rtt'] = float(rtt_match.group(1))
-
-    if verbose:
-        log.debug(f"Parsed stats: {stats}")
-
-    return stats
+    return ip_address, success, time, ttl
 
 def ping_target(target, repeat=3, verbose=False):
     successes = 0
@@ -111,6 +97,9 @@ def ping_target(target, repeat=3, verbose=False):
                     text=True
                 )
 
+            # Print the raw output of the ping command
+            # log.debug(f"Raw ping output: {result.stdout}")
+
             if "TTL=" in result.stdout or "time=" in result.stdout:
                 successes += 1
                 log.info(f"Reply from {target} - Success")
@@ -126,8 +115,8 @@ def ping_target(target, repeat=3, verbose=False):
     finally:
         log.info(f"Ping complete. Successes: {successes}, Failures: {failures}")
 
-
 def main():
+    
     args = parse_args()
     set_logging_format(args)
 
