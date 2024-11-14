@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import platform
+import re
 import subprocess
 import sys
-import re
 from time import sleep
 
 ## Configure logging

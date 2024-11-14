@@ -1,6 +1,9 @@
-import pytest
+from __future__ import annotations
+
 import os
 from pathlib import Path
+
+import pytest
 
 @pytest.mark.sanity
 def test_python_version(python_ver: str):
