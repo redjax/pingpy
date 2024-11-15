@@ -159,7 +159,7 @@ def export_requirements(session: nox.Session, requirements_output_dir: Path):
     )
 
 ## Run pytest with xdist, allowing concurrent tests
-@nox.session(python=PY_VERSIONS, name="tests")
+@nox.session(python=DEFAULT_PYTHON, name="tests")
 def run_tests(session: nox.Session):
     install_uv_project(session)
     session.install("pytest-xdist")
