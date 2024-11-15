@@ -24,7 +24,7 @@ jobs:
       ## Configure a constant location for the uv cache
       UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
       UV_PUBLISH_USERNAME: "__token__"
-      UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+      UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -66,13 +66,15 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  publish-pypi-test:
+  publish-pypi:
     needs: build
     if: ${{ github.event.label.name == 'release' }}
     runs-on: ubuntu-latest
     env:
-      name: testpypi
-      url: https://test.pypi.org/legacy/
+      ## Configure a constant location for the uv cache
+      UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
+      UV_PUBLISH_USERNAME: "__token__"
+      UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
     permissions:
       id-token: write
@@ -84,8 +86,20 @@ jobs:
           name: python-package-distributions
           path: dist/
 
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: 0.4.24
+          enable-cache: true
+          ## Invalidate cache when lockfile changes
+          cache-dependency-glob: "uv.lock"
+
       - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        run: uv publish
 
   # github-release:
   #   name: >-
