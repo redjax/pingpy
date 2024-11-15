@@ -15,7 +15,7 @@ text = "MIT"
 [project.urls]
 Repository = "https://github.com/redjax/pingpy"
 # Documentation = ""
-# Download = "https://pypi.org/project/pingpy/"
+Download = "https://pypi.org/project/pingpy/"
 
 [tool.uv]
 dev-dependencies = [
