@@ -56,7 +56,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: uv run nox -s tests
+        run: uv run --python ${{ matrix.version }} nox -s tests
 
       ## Optimize cache
       - name: Minimize uv cache

@@ -56,7 +56,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Lint code
-        run: uv run nox -s ruff-lint
+        run: uv run --python ${{ matrix.version }} nox -s ruff-lint
 
       ## Optimize cache
       - name: Minimize uv cache
