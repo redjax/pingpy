@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('target', help='Target IP address or hostname to ping')
 
     # Optional arguments for repeat count, verbosity, and debug
-    parser.add_argument('-r', '--repeat', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
+    parser.add_argument('-c', '--count', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
 
@@ -130,7 +130,7 @@ def ping():
     elif args.verbose:
         log.info("Verbose mode enabled")
 
-    _ping_target(args.target, args.repeat, args.verbose)
+    _ping_target(args.target, args.count, args.verbose)
 
 if __name__ == '__main__':
     ping()
