@@ -122,6 +122,14 @@ Double check imports in __init__.py files, ruff removes unused imports by defaul
         f"{Path('./noxfile.py')}",
         "--fix",
     )
+    
+@nox.session(python=[DEFAULT_PYTHON], name="vulture-check", tags=["quality"])
+def run_vulture_check(session: nox.Session):
+    session.install(f"vulture")
+
+    log.info("Checking for dead code with vulture")
+    session.run("vulture", "src/pingpy", "--min-confidence", "100")
+    
 
 @nox.session(python=[DEFAULT_PYTHON], name="uv-export")
 @nox.parametrize("requirements_output_dir", REQUIREMENTS_OUTPUT_DIR)
@@ -151,7 +159,7 @@ def export_requirements(session: nox.Session, requirements_output_dir: Path):
     )
 
 ## Run pytest with xdist, allowing concurrent tests
-@nox.session(python=PY_VERSIONS, name="tests")
+@nox.session(python=DEFAULT_PYTHON, name="tests")
 def run_tests(session: nox.Session):
     install_uv_project(session)
     session.install("pytest-xdist")

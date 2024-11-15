@@ -1,6 +1,9 @@
-import typing as t
-from pytest import fixture
+from __future__ import annotations
+
 import platform
+import typing as t
+
+from pytest import fixture
 
 @fixture
 def sandbox_dir(fs):
