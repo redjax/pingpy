@@ -1,5 +1,5 @@
 ---
-name: Run tests
+name: tests
 run-name: ${{ github.actor }} | Running nox session tests via uv
 on:
   pull_request:

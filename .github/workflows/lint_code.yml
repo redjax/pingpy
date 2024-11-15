@@ -1,5 +1,5 @@
 ---
-name: Lint code with ruff
+name: lint & format
 run-name: ${{ github.actor }} | Running nox session ruff-lint via uv
 on:
   pull_request:
