@@ -98,7 +98,9 @@ jobs:
           ## Invalidate cache when lockfile changes
           cache-dependency-glob: "uv.lock"
 
-      
+      - name: Publish package
+        run: uv publish
+
 
   # github-release:
   #   name: >-
