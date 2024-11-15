@@ -1,5 +1,9 @@
 # PingPy
 
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/redjax/pingpy?style=flat)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/redjax/pingpy?style=flat)
+[![tests](https://github.com/redjax/pingpy/actions/workflows/tests.yml/badge.svg)](https://github.com/redjax/pingpy/actions/workflows/tests.yml)
+
 A cross platform wrapper for the `ping` utility written in Python.
 
 ## Description
