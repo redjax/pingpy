@@ -13,6 +13,8 @@ on:
   
 jobs:
   publish-pypi:
+    name: |
+      Build package with uv, publish to Pypi
     runs-on: ubuntu-latest
     ## Only on PRs with 'release' label
     if: ${{ github.event.label.name == 'release' }}
@@ -20,6 +22,8 @@ jobs:
       matrix:
         version: 
           - "3.12"
+    needs:
+      - tests
     env:
       ## Configure a constant location for the uv cache
       UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
@@ -74,7 +78,7 @@ jobs:
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
     needs:
-    - publish-pypi
+      - publish-pypi
     runs-on: ubuntu-latest
     ## Only on PRs with 'release' label
     if: ${{ github.event.label.name == 'release' }}
