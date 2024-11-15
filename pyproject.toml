@@ -19,6 +19,7 @@ Repository = "https://github.com/redjax/pingpy"
 
 [tool.uv]
 dev-dependencies = [
+    "bump-my-version>=0.28.1",
     "nox>=2024.10.9",
     "pytest-xdist>=3.6.1",
     "ruff>=0.7.3",

@@ -53,7 +53,48 @@ def install_uv_project(session: nox.Session, external: bool = False) -> None:
     session.run("uv", "sync", external=external)
     log.info("Installing project")
     session.run("uv", "pip", "install", ".", external=external)
+
+
+def bump_project_version(session: nox.Session, bump_type: str = "patch", dry_run: bool = False):
+    VALID_BUMP_TYPES = ["major", "minor", "patch"]
     
+    session.install("bump-my-version")
+    
+    ## Check if arg was passed and validate
+    if not bump_type or bump_type == "" or bump_type == " " or bump_type is None:
+        raise ValueError("Missing a bump type {VALID_BUMP_TYPES}")
+    
+    if bump_type not in ["major", "minor", "patch"]:
+        raise ValueError(f"Invalid bump type: '{bump_type}'. Must be one of: {VALID_BUMP_TYPES}")
+    
+    match bump_type:
+        case "major":
+            log.info("Bumping major version")
+            
+            if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
+                session.run("bump-my-version", "bump", "major", "--dry-run", "-vv")
+            else:
+                session.run("bump-my-version", "bump", "major")
+        case "minor":
+            log.info("Bumping minor version")
+            
+            if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
+                session.run("bump-my-version", "bump", "minor", "--dry-run", "-vv")
+            else:
+                session.run("bump-my-version", "bump", "minor")
+        case "patch":
+            log.info("Bumping patch version")
+            
+            if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
+                session.run("bump-my-version", "bump", "patch", "--dry-run", "-vv")
+            else:
+                session.run("bump-my-version", "bump", "patch")
+        case _:
+            raise ValueError(f"Invalid bump type: '{bump_type}'. Must be one of: {VALID_BUMP_TYPES}")
+
     
 
 @nox.session(name="dev-env", tags=["setup"])
@@ -84,7 +125,7 @@ def run_linter(session: nox.Session, lint_paths: list[str] = LINT_PATHS):
                 """No ruff.toml file found. Make sure your pyproject.toml has a [tool.ruff] section!
 
 If your pyproject.toml does not have a [tool.ruff] section, ruff's defaults will be used.
-Double check imports in __init__.py files, ruff removes unused imports by default.
+Double check imports in _init_.py files, ruff removes unused imports by default.
 """
             )
 
@@ -175,3 +216,43 @@ def run_tests(session: nox.Session):
         "-v",
         "-rsXxfP",
     )
+
+@nox.session(name="bump-version-init", tags=["release", "bump"])
+def bump_version_init(session: nox.Session):
+    session.install("bump-my-version")
+    
+    if not Path(".bumpversion.toml").exists():
+        log.info("Initializing bump-my-version")
+        session.run("bump-my-version", "sample-config", "--no-prompt", "--destination", ".bumpversion.toml")
+
+@nox.session(name="bump-version-show", tags=["release", "bump"])
+def bump_version_show_bumps(session: nox.Session):    
+    session.install("bump-my-version")
+    session.run("bump-my-version", "show-bump")
+
+@nox.session(name="bump-version-patch", tags=["release", "bump"])
+def bump_version_patch(session: nox.Session):
+    
+    bump_project_version(session=session, bump_type="patch")
+    
+@nox.session(name="bump-version-patch-dry", tags=["release", "bump"])
+def bump_version_patch_dry(session: nox.Session):
+    bump_project_version(session=session, bump_type="patch", dry_run=True)
+
+@nox.session(name="bump-version-minor", tags=["release", "bump"])
+def bump_version_minor(session: nox.Session):
+    
+    bump_project_version(session=session, bump_type="minor")
+    
+@nox.session(name="bump-version-minor-dry", tags=["release", "bump"])
+def bump_version_minor_dry(session: nox.Session):
+    bump_project_version(session=session, bump_type="minor", dry_run=True)
+
+@nox.session(name="bump-version-major", tags=["release", "bump"])
+def bump_version_patch(session: nox.Session):
+    
+    bump_project_version(session=session, bump_type="major")
+    
+@nox.session(name="bump-version-major-dry", tags=["release", "bump"])
+def bump_version_patch_dry(session: nox.Session):
+    bump_project_version(session=session, bump_type="major", dry_run=True)
