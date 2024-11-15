@@ -125,7 +125,7 @@ def run_linter(session: nox.Session, lint_paths: list[str] = LINT_PATHS):
                 """No ruff.toml file found. Make sure your pyproject.toml has a [tool.ruff] section!
 
 If your pyproject.toml does not have a [tool.ruff] section, ruff's defaults will be used.
-Double check imports in __init__.py files, ruff removes unused imports by default.
+Double check imports in _init_.py files, ruff removes unused imports by default.
 """
             )
 
@@ -226,7 +226,7 @@ def bump_version_init(session: nox.Session):
         session.run("bump-my-version", "sample-config", "--no-prompt", "--destination", ".bumpversion.toml")
 
 @nox.session(name="bump-version-show", tags=["release", "bump"])
-def bump_version_show_bumps(session: nox.Session):
+def bump_version_show_bumps(session: nox.Session):    
     session.install("bump-my-version")
     session.run("bump-my-version", "show-bump")
 
@@ -236,5 +236,23 @@ def bump_version_patch(session: nox.Session):
     bump_project_version(session=session, bump_type="patch")
     
 @nox.session(name="bump-version-patch-dry", tags=["release", "bump"])
-def bump_version__patch_dry(session: nox.Session):
+def bump_version_patch_dry(session: nox.Session):
     bump_project_version(session=session, bump_type="patch", dry_run=True)
+
+@nox.session(name="bump-version-minor", tags=["release", "bump"])
+def bump_version_minor(session: nox.Session):
+    
+    bump_project_version(session=session, bump_type="minor")
+    
+@nox.session(name="bump-version-minor-dry", tags=["release", "bump"])
+def bump_version_minor_dry(session: nox.Session):
+    bump_project_version(session=session, bump_type="minor", dry_run=True)
+
+@nox.session(name="bump-version-major", tags=["release", "bump"])
+def bump_version_patch(session: nox.Session):
+    
+    bump_project_version(session=session, bump_type="major")
+    
+@nox.session(name="bump-version-major-dry", tags=["release", "bump"])
+def bump_version_patch_dry(session: nox.Session):
+    bump_project_version(session=session, bump_type="major", dry_run=True)
