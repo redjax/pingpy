@@ -67,20 +67,28 @@ def bump_project_version(session: nox.Session, bump_type: str = "patch", dry_run
     if bump_type not in ["major", "minor", "patch"]:
         raise ValueError(f"Invalid bump type: '{bump_type}'. Must be one of: {VALID_BUMP_TYPES}")
     
-    log.info(f"Bumping {bump_type} version")
     match bump_type:
         case "major":
+            log.info("Bumping major version")
+            
             if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
                 session.run("bump-my-version", "bump", "major", "--dry-run")
             else:
                 session.run("bump-my-version", "bump", "major")
         case "minor":
+            log.info("Bumping minor version")
+            
             if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
                 session.run("bump-my-version", "bump", "minor", "--dry-run")
             else:
                 session.run("bump-my-version", "bump", "minor")
         case "patch":
+            log.info("Bumping patch version")
+            
             if dry_run:
+                session.log("Dry run enabled, no version bump will occur")
                 session.run("bump-my-version", "bump", "patch", "--dry-run")
             else:
                 session.run("bump-my-version", "bump", "patch")
