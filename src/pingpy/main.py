@@ -103,19 +103,19 @@ def parse_args():
         (argparse.Namespace): Parsed arguments namespace.
 
     """
-    parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count, debugging & verbosity level, and optional logging to file.")
+    parser = argparse.ArgumentParser("pingpy", description="Ping a specified target with options for repeat count, debugging & verbosity level, and optional logging to file.")
     
     ## Make the target positional (first argument after the script name)
     parser.add_argument('target', help='Target IP address or hostname to ping')
 
     ## Optional arguments for repeat count, verbosity, and debug
-    parser.add_argument('-c', '--count', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
+    parser.add_argument('-c', '--count', type=int, default=3, help='Number of times to ping. Default: 3, 0=infinite.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('-f', '--file', type=str, help='Path to the log file')
     parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite the log file if it exists')
     parser.add_argument('-a', '--append', action='store_true', help='Append to the log file if it exists')
-    parser.add_argument('-s', '--sleep', type=int, default=1, help='Number of seconds to wait between pings. Default is 1 second.')
+    parser.add_argument('-s', '--sleep', type=int, default=1, help='Number of seconds to wait between pings. Default: 1.')
 
     return parser.parse_args()
 

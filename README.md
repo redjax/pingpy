@@ -13,3 +13,24 @@ A cross platform wrapper for the `ping` utility written in Python.
 ## Usage
 
 Run `pingpy --help` to see usage instructions.
+
+```shell title="pingpy usage" linenums="1"
+usage: pingpy [-h] [-c COUNT] [-v] [-d] [-f FILE] [-o] [-a] [-s SLEEP] target
+
+Ping a specified target with options for repeat count, debugging & verbosity level, and optional logging to file.
+
+positional arguments:
+  target                Target IP address or hostname to ping
+
+options:
+  -h, --help            show this help message and exit
+  -c COUNT, --count COUNT
+                        Number of times to ping. Default: 3, 0=infinite.
+  -v, --verbose         Enable verbose output
+  -d, --debug           Enable debug logging
+  -f FILE, --file FILE  Path to the log file
+  -o, --overwrite       Overwrite the log file if it exists
+  -a, --append          Append to the log file if it exists
+  -s SLEEP, --sleep SLEEP
+                        Number of seconds to wait between pings. Default: 1.
+```
