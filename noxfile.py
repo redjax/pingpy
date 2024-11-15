@@ -73,7 +73,7 @@ def bump_project_version(session: nox.Session, bump_type: str = "patch", dry_run
             
             if dry_run:
                 session.log("Dry run enabled, no version bump will occur")
-                session.run("bump-my-version", "bump", "major", "--dry-run")
+                session.run("bump-my-version", "bump", "major", "--dry-run", "-vv")
             else:
                 session.run("bump-my-version", "bump", "major")
         case "minor":
@@ -81,7 +81,7 @@ def bump_project_version(session: nox.Session, bump_type: str = "patch", dry_run
             
             if dry_run:
                 session.log("Dry run enabled, no version bump will occur")
-                session.run("bump-my-version", "bump", "minor", "--dry-run")
+                session.run("bump-my-version", "bump", "minor", "--dry-run", "-vv")
             else:
                 session.run("bump-my-version", "bump", "minor")
         case "patch":
@@ -89,7 +89,7 @@ def bump_project_version(session: nox.Session, bump_type: str = "patch", dry_run
             
             if dry_run:
                 session.log("Dry run enabled, no version bump will occur")
-                session.run("bump-my-version", "bump", "patch", "--dry-run")
+                session.run("bump-my-version", "bump", "patch", "--dry-run", "-vv")
             else:
                 session.run("bump-my-version", "bump", "patch")
         case _:
