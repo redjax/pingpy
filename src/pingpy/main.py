@@ -8,10 +8,35 @@ import subprocess
 import sys
 from time import sleep
 from pathlib import Path
+from dataclasses import dataclass, field
 
 ## Initialize logging
 log = logging.getLogger("pingpy")
 console_handler = logging.StreamHandler()
+
+@dataclass
+class PingArgs:
+    """Dataclass for CLI args.
+    
+    Params:
+        target (str): Target IP address or hostname to ping.
+        count (int): Number of times to ping the target. Default is 1.
+        verbose (bool): Whether to print verbose output. Default is False.
+        debug (bool): Whether to enable debug logging. Default is False.
+        file (str): Path to the log file. Default is None.
+        overwrite (bool): Whether to overwrite the log file if it exists. Default is False.
+        append (bool): Whether to append to the log file if it exists. Default is False.
+        sleep (int): Number of seconds to wait between pings. Default is 1.
+    """
+
+    target: str = field(default=None)
+    count: int = field(default=1)
+    verbose: bool = field(default=False)
+    debug: bool = field(default=False)
+    file: str | None = field(default=None)
+    overwrite: bool = field(default=False)
+    append: bool = field(default=False)
+    sleep: int = field(default=1)
 
 
 def set_logging_format(args):
@@ -197,17 +222,21 @@ def ping():
     args = parse_args()
     ## Initialize pingpy logging
     set_logging_format(args)
-
-    if args.debug:
+    
+    ## Initialize PingArgs class
+    ping_settings: PingArgs = PingArgs(**vars(args))
+    log.debug(f"Ping settings: {ping_settings}")
+    
+    if ping_settings.debug:
         log.debug("Debug mode enabled")
-    elif args.verbose:
+    elif ping_settings.verbose:
         log.debug("Verbose mode enabled")
 
     ## Start ping
     try:
-        _ping_target(args.target, args.count, args.sleep, args.verbose)
+        _ping_target(ping_settings.target, ping_settings.count, ping_settings.sleep, ping_settings.verbose)
     except Exception as exc:
-        msg = f"An error occurred while pinging {args.target}. Details: {exc}"
+        msg = f"An error occurred while pinging {ping_settings.target}. Details: {exc}"
         log.error(msg)
         sys.exit(1)
 
