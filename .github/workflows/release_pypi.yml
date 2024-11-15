@@ -11,9 +11,9 @@ on:
   #     - "*.md"
   #     - ".gitignore"
   workflow_run:
-    workflows: ["tests"]  # Matches the `name` of the tests.yml workflow
+    workflows: ["Tests"]  # Matches the `name` of the tests.yml workflow
     types:
-      - completed  # Triggers when the `tests.yml` workflow completes
+      - completed
   
 jobs:
   publish-pypi:
