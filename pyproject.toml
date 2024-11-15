@@ -1,6 +1,6 @@
 [project]
 name = "pingpy"
-version = "0.1.0"
+version = "0.1.1"
 description = "A cross-platform Python wrapper around the `ping` utility."
 authors = [
     { name = "redjax", email = "no@none.com" }
