@@ -17,7 +17,8 @@ jobs:
 
     strategy:
       matrix:
-        version: ["3.12"]
+        version: 
+          - "3.12"
 
     env:
       ## Configure a constant location for the uv cache
