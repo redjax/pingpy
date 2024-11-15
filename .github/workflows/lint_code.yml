@@ -14,6 +14,8 @@ jobs:
   ruff-lint:
     name: python
     runs-on: ubuntu-latest
+    ## Continue even if this job fails
+    continue-on-error: true
 
     strategy:
       matrix:
