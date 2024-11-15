@@ -9,25 +9,30 @@ import sys
 from time import sleep
 from pathlib import Path
 
-## Configure logging
+## Initialize logging
 log = logging.getLogger("pingpy")
 console_handler = logging.StreamHandler()
 
 
 def set_logging_format(args):
+    """Setup logging based on args passed to CLI."""
     formatter = None
+    
+    ## -d/--debug arg
     if args.debug:
         log.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
             "%(asctime)s > [%(levelname)s] > %(module)s.%(funcName)s:%(lineno)s > %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S"
         )
+    ## -v/--verbose arg
     elif args.verbose:
         log.setLevel(logging.INFO)
         formatter = logging.Formatter(
             "%(asctime)s > [%(levelname)s] > %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S"
         )
+    ## Standard logging
     else:
         log.setLevel(logging.INFO)
         formatter = logging.Formatter(
@@ -38,17 +43,23 @@ def set_logging_format(args):
     console_handler.setFormatter(formatter)
     log.addHandler(console_handler)
 
-    # Set up file logging if a file path is provided
+    ## Set up file logging if a file path is provided
     if args.file:
         file_path = Path(args.file)
+        
         if file_path.exists() and not (args.append or args.overwrite):
             log.error(f"File {file_path} already exists. Use -a/--append or -o/--overwrite to modify.")
             sys.exit(1)
 
-        # Create directories if they do not exist
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        ## Create directories if they do not exist
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception as exc:
+            msg = f"({type(exc)}) Unable to create directory: '{file_path.parent}'. Details: {exc}"
+            log.error(msg)
+            sys.exit(1)
 
-        # File mode based on append/overwrite
+        ## File mode based on append/overwrite
         file_mode = 'a' if args.append else 'w'
         file_handler = logging.FileHandler(file_path, mode=file_mode)
         file_formatter = logging.Formatter(
@@ -61,18 +72,25 @@ def set_logging_format(args):
         log.addHandler(file_handler)
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count and verbosity.")
+    """Parse CLI args with argparse.
     
-    # Make the target positional (first argument after the script name)
+    Returns:
+        (argparse.Namespace): Parsed arguments namespace.
+
+    """
+    parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count, debugging & verbosity level, and optional logging to file.")
+    
+    ## Make the target positional (first argument after the script name)
     parser.add_argument('target', help='Target IP address or hostname to ping')
 
-    # Optional arguments for repeat count, verbosity, and debug
+    ## Optional arguments for repeat count, verbosity, and debug
     parser.add_argument('-c', '--count', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('-f', '--file', type=str, help='Path to the log file')
     parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite the log file if it exists')
     parser.add_argument('-a', '--append', action='store_true', help='Append to the log file if it exists')
+    parser.add_argument('-s', '--sleep', type=int, default=1, help='Number of seconds to wait between pings. Default is 1 second.')
 
     return parser.parse_args()
 
@@ -106,7 +124,16 @@ def _parse_ping_response(output):
 
     return ip_address, success, time, ttl
 
-def _ping_target(target, repeat=3, verbose=False):
+def _ping_target(target, repeat=3, sleep_seconds=1,verbose=False):
+    """Pings a target IP address or hostname a specified number of times and logs the results.
+    
+    Params:
+        target (str): Target IP address or hostname to ping.
+        repeat (int): Number of times to ping the target. Default is 3.
+        sleep_seconds (int): Number of seconds to wait between pings. Default is 1 second.
+        verbose (bool): Whether to print verbose output. Default is False.
+    """
+    ## Initialize counts
     successes = 0
     failures = 0
     
@@ -114,34 +141,45 @@ def _ping_target(target, repeat=3, verbose=False):
 
     try:
         for i in range(repeat if repeat > 0 else sys.maxsize):
-            if platform.system().lower() == 'windows':
-                # Run the ping command for Windows
-                result = subprocess.run(
-                    ["ping", target, "-n", "1"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
-            else:
-                # Run the ping command for Unix-based systems
-                result = subprocess.run(
-                    ["ping", "-c", "1", target],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
+            log.debug(f"Ping [{i + 1}/{repeat}]")
 
-            # Print the raw output of the ping command
-            # log.debug(f"Raw ping output: {result.stdout}")
+            if platform.system().lower() == 'windows':
+                ## Run the ping command for Windows
+                try:
+                    result = subprocess.run(
+                        ["ping", target, "-n", "1"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                except subprocess.CalledProcessError as e:
+                    log.error(f"Error running ping command: {e}")
+                    sys.exit(1)
+
+            else:
+                ## Run the ping command for Unix-based systems
+                try:
+                    result = subprocess.run(
+                        ["ping", "-c", "1", target],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                except subprocess.CalledProcessError as e:
+                    log.error(f"Error running ping command: {e}")
+                    sys.exit(1)
 
             if "TTL=" in result.stdout or "time=" in result.stdout:
+                ## Ping success
                 successes += 1
                 log.info(f"Reply from {target} - Success")
             else:
+                ## Ping failure
                 failures += 1
                 log.warning(f"No reply from {target} - Failure")
 
-            sleep(1)  # Optional: Add a delay between pings
+            ## Optional: Add a delay between pings
+            sleep(sleep_seconds)
 
     except KeyboardInterrupt:
         log.info("Ping interrupted by user (CTRL+C).")
@@ -159,7 +197,7 @@ def ping():
     elif args.verbose:
         log.info("Verbose mode enabled")
 
-    _ping_target(args.target, args.count, args.verbose)
+    _ping_target(args.target, args.count, args.sleep, args.verbose)
 
 if __name__ == '__main__':
     ping()
