@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass, field
 import logging
+from pathlib import Path
 import platform
 import re
 import subprocess
 import sys
 from time import sleep
-from pathlib import Path
-from dataclasses import dataclass, field
 
 ## Initialize logging
 log = logging.getLogger("pingpy")
