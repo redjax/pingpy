@@ -1,10 +1,21 @@
 [project]
 name = "pingpy"
 version = "0.1.0"
-description = "Add your description here"
+description = "A cross-platform Python wrapper around the `ping` utility."
+authors = [
+    { name = "redjax", email = "no@none.com" }
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+
+[project.license]
+text = "MIT"
+
+[project.urls]
+Repository = "https://github.com/redjax/pingpy"
+# Documentation = ""
+# Download = "https://pypi.org/project/pingpy/"
 
 [tool.uv]
 dev-dependencies = [
