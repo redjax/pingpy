@@ -22,7 +22,6 @@ jobs:
       matrix:
         version: 
           - "3.12"
-    needs: tests
     env:
       ## Configure a constant location for the uv cache
       UV_CACHE_DIR: ${{ github.workspace }}/.uv-cache
