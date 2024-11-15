@@ -14,29 +14,6 @@ log = logging.getLogger("pingpy")
 console_handler = logging.StreamHandler()
 
 
-# def set_logging_format(args):
-#     if args.debug:
-#         log.setLevel("DEBUG")
-#         formatter = logging.Formatter(
-#             "%(asctime)s > [%(levelname)s] > %(module)s.%(funcName)s:%(lineno)s > %(message)s",
-#             datefmt="%Y-%m-%d %H:%M:%S"
-#         )
-#     elif args.verbose:
-#         log.setLevel(logging.INFO)
-#         formatter = logging.Formatter(
-#             "%(asctime)s > [%(levelname)s] > %(message)s",
-#             datefmt="%Y-%m-%d %H:%M:%S"
-#         )
-#     else:
-#         log.setLevel(logging.INFO)
-#         formatter = logging.Formatter(
-#             "%(asctime)s > %(message)s",
-#             datefmt="%H:%M:%S"
-#         )
-        
-#     console_handler.setFormatter(formatter)
-#     log.addHandler(console_handler)
-
 def set_logging_format(args):
     formatter = None
     if args.debug:
