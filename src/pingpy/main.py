@@ -188,16 +188,28 @@ def _ping_target(target, repeat=3, sleep_seconds=1,verbose=False):
         log.info(f"Ping {target} complete. Successes: {successes}, Failures: {failures}")
 
 def ping():
+    """Pingpy entrypoint.
     
+    Description:
+        Parses command-line arguments, sets up logging, and calls the ping function.
+    """
+    ## Parse CLI arguments    
     args = parse_args()
+    ## Initialize pingpy logging
     set_logging_format(args)
 
     if args.debug:
         log.debug("Debug mode enabled")
     elif args.verbose:
-        log.info("Verbose mode enabled")
+        log.debug("Verbose mode enabled")
 
-    _ping_target(args.target, args.count, args.sleep, args.verbose)
+    ## Start ping
+    try:
+        _ping_target(args.target, args.count, args.sleep, args.verbose)
+    except Exception as exc:
+        msg = f"An error occurred while pinging {args.target}. Details: {exc}"
+        log.error(msg)
+        sys.exit(1)
 
 if __name__ == '__main__':
     ping()
