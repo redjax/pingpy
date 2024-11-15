@@ -38,10 +38,10 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
+        run: uv run python -c "import sys; print(sys.version)"
 
-      - name: List Python interpreters
-        run: ls -l $(dirname $(which python))
+      # - name: List Python interpreters
+      #   run: ls -l $(dirname $(which python))
 
       - name: Restore uv cache
         uses: actions/cache@v4
