@@ -7,15 +7,40 @@ import re
 import subprocess
 import sys
 from time import sleep
+from pathlib import Path
 
 ## Configure logging
 log = logging.getLogger("pingpy")
 console_handler = logging.StreamHandler()
 
 
+# def set_logging_format(args):
+#     if args.debug:
+#         log.setLevel("DEBUG")
+#         formatter = logging.Formatter(
+#             "%(asctime)s > [%(levelname)s] > %(module)s.%(funcName)s:%(lineno)s > %(message)s",
+#             datefmt="%Y-%m-%d %H:%M:%S"
+#         )
+#     elif args.verbose:
+#         log.setLevel(logging.INFO)
+#         formatter = logging.Formatter(
+#             "%(asctime)s > [%(levelname)s] > %(message)s",
+#             datefmt="%Y-%m-%d %H:%M:%S"
+#         )
+#     else:
+#         log.setLevel(logging.INFO)
+#         formatter = logging.Formatter(
+#             "%(asctime)s > %(message)s",
+#             datefmt="%H:%M:%S"
+#         )
+        
+#     console_handler.setFormatter(formatter)
+#     log.addHandler(console_handler)
+
 def set_logging_format(args):
+    formatter = None
     if args.debug:
-        log.setLevel("DEBUG")
+        log.setLevel(logging.DEBUG)
         formatter = logging.Formatter(
             "%(asctime)s > [%(levelname)s] > %(module)s.%(funcName)s:%(lineno)s > %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S"
@@ -32,9 +57,31 @@ def set_logging_format(args):
             "%(asctime)s > %(message)s",
             datefmt="%H:%M:%S"
         )
-        
+
     console_handler.setFormatter(formatter)
     log.addHandler(console_handler)
+
+    # Set up file logging if a file path is provided
+    if args.file:
+        file_path = Path(args.file)
+        if file_path.exists() and not (args.append or args.overwrite):
+            log.error(f"File {file_path} already exists. Use -a/--append or -o/--overwrite to modify.")
+            sys.exit(1)
+
+        # Create directories if they do not exist
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # File mode based on append/overwrite
+        file_mode = 'a' if args.append else 'w'
+        file_handler = logging.FileHandler(file_path, mode=file_mode)
+        file_formatter = logging.Formatter(
+            "%(asctime)s | [%(levelname)s] | %(message)s",
+            datefmt="%H:%M:%S"
+        )
+        file_handler.setFormatter(file_formatter)
+        file_handler.setLevel("INFO")
+        
+        log.addHandler(file_handler)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Ping a specified target with options for repeat count and verbosity.")
@@ -46,6 +93,9 @@ def parse_args():
     parser.add_argument('-c', '--count', type=int, default=3, help='Number of times to ping. Use 0 for infinite.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
+    parser.add_argument('-f', '--file', type=str, help='Path to the log file')
+    parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite the log file if it exists')
+    parser.add_argument('-a', '--append', action='store_true', help='Append to the log file if it exists')
 
     return parser.parse_args()
 
@@ -82,6 +132,8 @@ def _parse_ping_response(output):
 def _ping_target(target, repeat=3, verbose=False):
     successes = 0
     failures = 0
+    
+    log.info(f"Pinging {target} [repeat: {'indefinitely' if repeat == 0 else str(repeat) +  ' time(s)'}]")
 
     try:
         for i in range(repeat if repeat > 0 else sys.maxsize):
@@ -118,7 +170,7 @@ def _ping_target(target, repeat=3, verbose=False):
         log.info("Ping interrupted by user (CTRL+C).")
 
     finally:
-        log.info(f"Ping complete. Successes: {successes}, Failures: {failures}")
+        log.info(f"Ping {target} complete. Successes: {successes}, Failures: {failures}")
 
 def ping():
     
