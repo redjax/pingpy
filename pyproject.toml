@@ -17,6 +17,9 @@ Repository = "https://github.com/redjax/pingpy"
 # Documentation = ""
 Download = "https://pypi.org/project/pingpy/"
 
+[project.scripts]
+pingpy = "pingpy:ping"
+
 [tool.uv]
 dev-dependencies = [
     "bump-my-version>=0.28.1",
